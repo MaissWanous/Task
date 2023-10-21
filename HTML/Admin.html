@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <link rel="stylesheet" href="../css/style.css" />
+    <title>Admin</title>
+</head>
+<script>
+    // Verify sending the question once
+    let check = true;
+    function loadPage() {
+        // Fetch the answer from the API
+        fetch("/api/questions")
+            .then((response) => response.json())
+            .then((data) => {
+                if (data.Question != "") {
+                    check = true;
+                }
+                if (data.Question != "" && check) {
+
+                    var chatContainer = $('#Message_container');
+                    var questionDiv = $('<div>').addClass('chat-message response').
+                        html("<strong>Question :</strong>" + data.Question)
+                    chatContainer.append(questionDiv)
+                    check = false;
+                    $.post("/api/questions", { question: '' }, function () {
+                        console.log("Set the question is empty")
+                    });
+
+                }
+            })
+    }
+    async function update() {
+        $(document).on("submit", "#form", function (e) {
+            $.ajax({
+                url: $(this).attr("action"),
+                type: $(this).attr("method"),
+                data: $(this).serialize(),
+                success: async function (html) {
+                    let request = async () => {
+                        // Display the question in the chat container
+                        var chatContainer = $('#Message_container');
+                        var requestText = $("#answer").val();
+                        var requestDiv = $('<div>').addClass('chat-message request').
+                            html("<strong>Answer :</strong>" + requestText)
+                        chatContainer.append(requestDiv)
+                        $('#answer').val("")
+
+
+                    };
+                    await request();
+                },
+            });
+            e.preventDefault();
+        });
+        setInterval(loadPage, 3000); // Display the responses periodically
+    }
+
+    $(document).ready(async function () {
+        await update();
+    });
+
+</script>
+
+<body>
+
+    <div class="container">
+        <form action="/api/answer" method="post" id="form">
+            <div class="chat-container" id="Message_container"></div>
+            <input type="text" autocomplete="off" id="answer" name="answer" class="chat-box" required
+                placeholder="Enter the answer ...">
+            <input type="submit" value="Send" class="button">
+        </form>
+    </div>
+</body>
+
+</html>

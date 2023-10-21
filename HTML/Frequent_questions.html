@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <link rel="stylesheet" href="../css/style.css" />
+    <title>Frequent questions</title>
+</head>
+
+<script>
+    async function update() {
+        $(document).on("submit", "#form", function (e) {
+            $.ajax({
+                url: $(this).attr("action"),
+                type: $(this).attr("method"),
+                data: $(this).serialize(),
+                success: async function (html) {
+                    let request = async () => {
+                        const response = await fetch("http://localhost:2002/api/Frequent_questions");
+                        const data = await response.json();
+                        if (data.Warning) {
+                            $("#Warning").html(
+                                "Sorry, the time allowed to send messages has expired."
+                                + "<br>" +
+                                "You can't send any message before 1 minute"
+                            );
+                            $("#Send").remove();
+                        } else {
+                            $("#Notice").show()
+
+                            //Get the text of the question
+                            var questionInput = $('#question');
+                            var questionText = $("#question option:selected").text();
+                            $("#question option:selected").remove()
+
+                            //Returns the selection to empty
+                            questionInput.val("");
+
+                            var chatContainer = $('#Message_container');
+
+                            var requestDiv = $('<div>').addClass('chat-message request').html('<strong>Question:</strong> ' + questionText);
+                            chatContainer.append(requestDiv);
+                            var responseDiv = $('<div>').addClass('chat-message response').html('<strong>Answer:</strong> ' + data.Answer).hide();
+                            chatContainer.append(responseDiv);
+                            responseDiv.delay(1500).queue(function (next) {
+                                $(this).show();
+                                next();
+                            });
+                        }
+                    };
+                    await request();
+                },
+            });
+            e.preventDefault();
+        });
+    }
+
+    $(document).ready(async function () {
+        await update();
+        $("#Notice").hide()
+    });
+</script>
+
+<body>
+    <div class="container">
+        <div class="warning-message top" id="Notice">You have 1 minute to ask what you want</div>
+        <div class="chat-container" id="Message_container"></div>
+        <form action="/api/Frequent_questions" method="post" id="form" class="form-container">
+            <label for="question">Select a question:</label>
+            <select name="question" id="question" required>
+                <option value="">-- Select a question --</option>
+                <option value="Question1">Question 1?</option>
+                <option value="Question2">Question 2?</option>
+                <option value="Question3">Question 3?</option>
+                <option value="Question4">Question 4?</option>
+                <option value="Question5">Question 5?</option>
+                <option value="Question6">Question 6?</option>
+            </select>
+            <input type="submit" value="Send" class="button" id="Send">
+            <div id="Warning" class="warning-message"></div>
+        </form>
+    </div>
+
+</body>
+
+</html>
