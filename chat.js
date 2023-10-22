@@ -1,10 +1,12 @@
 const express = require("express");
 const bodyparser = require("body-parser");
+const cors = require('cors');
 const moment = require("moment");
 const user = require("./js/user");
 const Frequent_questions = require("./js/Frequent_questions");
 const Admin = require("./js/Admin");
 const app = express();
+app.use(cors());
 app.use(express.static("public"));
 app.use(bodyparser.urlencoded({ extended: true }));
 user.user(app, __dirname)
